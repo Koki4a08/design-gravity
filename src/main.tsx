@@ -10,8 +10,8 @@ import "./styles/hub.css";
 import "./styles/chat.css";
 import "./styles/islands.css";
 import "./styles/systems.css";
-import { StudioProvider } from "./lib/studio";
-import { SystemsProvider } from "./lib/systemsStore";
+import { StudioProvider } from "./lib/state/studio";
+import { SystemsProvider } from "./lib/state/systemsStore";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(

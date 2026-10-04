@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { useStudio } from "./lib/studio";
-import { Wall } from "./components/Wall";
-import { Spread } from "./components/Spread";
-import { Toast } from "./components/Toast";
-import { SettingsModal } from "./components/SettingsModal";
-import type { SettingsPage } from "./components/SettingsModal";
-import { SettingsCtx } from "./components/SettingsButton";
-import { BuilderHost } from "./components/BuilderHost";
-import { CliUpdates } from "./components/CliUpdates";
-import { Titlebar } from "./components/Titlebar";
+import { useStudio } from "./lib/state/studio";
+import { Wall } from "./components/hub/Wall";
+import { Spread } from "./components/editor/Spread";
+import { Toast } from "./components/shell/Toast";
+import { SettingsModal } from "./components/shell/SettingsModal";
+import type { SettingsPage } from "./components/shell/SettingsModal";
+import { SettingsCtx } from "./components/shell/SettingsButton";
+import { BuilderHost } from "./components/systems/BuilderHost";
+import { CliUpdates } from "./components/shell/CliUpdates";
+import { Titlebar } from "./components/shell/Titlebar";
 
 export default function App() {
   const { status, activeId, designs } = useStudio();
