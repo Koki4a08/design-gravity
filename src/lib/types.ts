@@ -185,7 +185,7 @@ export interface Settings {
   /** Starred models, as "provider:model". */
   favoriteModels: string[];
   /** Harness and model for runs the app starts itself (design systems, critiques,
-   * code export); "" follows the default model above. */
+   * HTML export); "" follows the default model above. */
   systemProvider: Provider | "";
   systemModel: string;
   effort: "" | "low" | "medium" | "high" | "max";

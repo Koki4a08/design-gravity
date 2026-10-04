@@ -55,6 +55,79 @@ nav a:hover { color: #9a3412; }
 <div class="plan"><h2>Commission</h2><div class="price">€190<small> / job from</small></div><ul><li>We set, proof and print</li><li>Up to 250 sheets</li></ul><button>Send a job</button></div>
 </section></body></html>`;
 
+/** The same page as SAMPLE_HTML, written the way the agent writes screens now. */
+const SAMPLE_PROJECT = (accent: string): Record<string, string> => ({
+  "app/page.tsx": `import "../styles/globals.css";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import Pricing from "../components/Pricing";
+
+export default function Page() {
+  return (
+    <>
+      <Navbar />
+      <Hero />
+      <Pricing />
+    </>
+  );
+}
+`,
+  "components/Navbar.tsx": `const links = ["Press", "Type cases", "Visit Lisbon"];
+
+export default function Navbar() {
+  return (
+    <header>
+      <span>Tipografia Oficina</span>
+      <nav>
+        {links.map((l) => (
+          <a key={l} href="#">{l}</a>
+        ))}
+      </nav>
+    </header>
+  );
+}
+`,
+  "components/Hero.tsx": `export default function Hero() {
+  return (
+    <section className="hero">
+      <h1>Set by hand, <em>printed</em> by Friday.</h1>
+      <p>A working letterpress studio in Alfama. Book the press by the day, or bring a job and let our compositors set it for you.</p>
+    </section>
+  );
+}
+`,
+  "components/Pricing.tsx": `type Plan = { name: string; price: string; per: string; perks: string[]; action: string; featured?: boolean };
+
+const plans: Plan[] = [
+  { name: "Visitor", price: "€40", per: "half day", perks: ["Press time on the Vandercook", "House wood type"], action: "Book a morning" },
+  { name: "Resident", price: "€320", per: "month", perks: ["Twelve press days", "Your own type drawer", "Paper at cost"], action: "Apply for a drawer", featured: true },
+  { name: "Commission", price: "€190", per: "job from", perks: ["We set, proof and print", "Up to 250 sheets"], action: "Send a job" },
+];
+
+export default function Pricing() {
+  return (
+    <section className="plans">
+      {plans.map((p) => (
+        <div key={p.name} className={p.featured ? "plan featured" : "plan"}>
+          <h2>{p.name}</h2>
+          <div className="price">{p.price}<small> / {p.per}</small></div>
+          <ul>{p.perks.map((k) => <li key={k}>{k}</li>)}</ul>
+          <button>{p.action}</button>
+        </div>
+      ))}
+    </section>
+  );
+}
+`,
+  "styles/globals.css":
+    `@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap");\n` +
+    SAMPLE_HTML.match(/<style>([\s\S]*?)<\/style>/)![1].trim().replace("#c2410c", accent) +
+    "\n",
+});
+
+/** Screens and mockups come back as projects; graphics stay single files. */
+const wantsProject = (prompt: string) => /React \+ TypeScript project|React project in this folder/.test(prompt);
+
 function load(): DesignMeta[] {
   try {
     return JSON.parse(localStorage.getItem(KEY) || "[]");
@@ -79,6 +152,7 @@ export function mockBackend(): Backend {
   const blobs = new Map<string, Record<string, string>>();
   const systems = new Map<string, SystemMeta>();
   const systemFiles = new Map<string, { spec: string; guide: string; preview: string }>();
+  const standalone = new Map<string, string>();
   let signedIn = params.get("auth") !== "out";
   // Both CLIs start a release behind so the update notice can be previewed; ?updates=off hides it.
   const installed: Record<string, string> = { antigravity: "1.2.12", codex: "0.157.1" };
@@ -151,12 +225,15 @@ export function mockBackend(): Backend {
           t,
           { event: "step_update", step_update: { step_index: i, state: done ? "DONE" : "ACTIVE", step_type: "tool", tool_name: "write_to_file", duration_seconds: done ? 1 : undefined, tool_info: { parameters: { TargetFile: file } } } },
         ];
-        [w(1, 600, "tokens.css", false), w(1, 1400, "tokens.css", true), w(2, 1600, "PricingPage.tsx", false), w(2, 3200, "PricingPage.tsx", true)]
+        [w(1, 600, "app/page.tsx", false), w(1, 1400, "app/page.tsx", true), w(2, 1600, "export/standalone.html", false), w(2, 3200, "export/standalone.html", true)]
           .forEach(([t, e]) => window.setTimeout(() => emit(designId, e), t));
-        window.setTimeout(() => exitCbs.forEach((cb) => cb({
-          designId, ok: true, cancelled: false, code: 0, authLost: false, usage: { total_tokens: 9000 },
-          response: "Wrote tokens.css and PricingPage.tsx: three plan cards built from your existing Button, typed props for the plans.",
-        })), 3600);
+        window.setTimeout(() => {
+          standalone.set(designId.replace(/^export-/, ""), SAMPLE_HTML);
+          exitCbs.forEach((cb) => cb({
+            designId, ok: true, cancelled: false, code: 0, authLost: false, usage: { total_tokens: 9000 },
+            response: "The standalone file is written.",
+          }));
+        }, 3600);
         return;
       }
       if (scope === "system") {
@@ -188,10 +265,10 @@ export function mockBackend(): Backend {
       const steps: [number, any][] = [
         [200, { event: "init", conversation_id: conv }],
         [700, { event: "step_update", step_update: { step_index: 1, state: "DONE", step_type: "agent_response", text_delta: "Reading the brief and choosing a type pairing. " } }],
-        [1300, { event: "step_update", step_update: { step_index: 2, state: "ACTIVE", step_type: "tool", tool_name: "view_file", tool_info: { parameters: { AbsolutePath: prompt.includes("left a note on the design") ? "design.html" : "design-system/DESIGN.md" } } } }],
-        [1600, { event: "step_update", step_update: { step_index: 2, state: "DONE", step_type: "tool", tool_name: "view_file", duration_seconds: 0.02, tool_info: { parameters: { AbsolutePath: prompt.includes("left a note on the design") ? "design.html" : "design-system/DESIGN.md" } } } }],
-        [2100, { event: "step_update", step_update: { step_index: 3, state: "ACTIVE", step_type: "tool", tool_name: "write_to_file", tool_info: { parameters: { TargetFile: "design.html" } } } }],
-        [3600, { event: "step_update", step_update: { step_index: 3, state: "DONE", step_type: "tool", tool_name: "write_to_file", duration_seconds: 1.4, tool_info: { parameters: { TargetFile: "design.html" } } } }],
+        [1300, { event: "step_update", step_update: { step_index: 2, state: "ACTIVE", step_type: "tool", tool_name: "view_file", tool_info: { parameters: { AbsolutePath: prompt.includes("left a note on the design") ? "app/page.tsx" : "design-system/DESIGN.md" } } } }],
+        [1600, { event: "step_update", step_update: { step_index: 2, state: "DONE", step_type: "tool", tool_name: "view_file", duration_seconds: 0.02, tool_info: { parameters: { AbsolutePath: prompt.includes("left a note on the design") ? "app/page.tsx" : "design-system/DESIGN.md" } } } }],
+        [2100, { event: "step_update", step_update: { step_index: 3, state: "ACTIVE", step_type: "tool", tool_name: "write_to_file", tool_info: { parameters: { TargetFile: "components/Hero.tsx" } } } }],
+        [3600, { event: "step_update", step_update: { step_index: 3, state: "DONE", step_type: "tool", tool_name: "write_to_file", duration_seconds: 1.4, tool_info: { parameters: { TargetFile: "components/Hero.tsx" } } } }],
         [4000, { event: "step_update", step_update: { step_index: 4, state: "DONE", step_type: "agent_response", text_delta: "A pricing page for a letterpress studio, set in Bricolage Grotesque over Literata." } }],
       ];
       const ids = steps.map(([t, e]) => window.setTimeout(() => emit(designId, e), t));
@@ -200,7 +277,12 @@ export function mockBackend(): Backend {
           // Variants get their own accent so the preview shows them apart.
           const letter = prompt.match(/variant ([A-D]) of/i)?.[1];
           const accent = { A: "#c2410c", B: "#1d4ed8", C: "#15803d", D: "#7e22ce" }[letter ?? "A"] ?? "#c2410c";
-          artifacts.set(designId, { file: "design.html", content: SAMPLE_HTML.replace("#c2410c", accent), modifiedMs: Date.now() });
+          artifacts.set(
+            designId,
+            wantsProject(prompt)
+              ? { file: "app/page.tsx", content: "", files: SAMPLE_PROJECT(accent), modifiedMs: Date.now() }
+              : { file: "design.html", content: SAMPLE_HTML.replace("#c2410c", accent), modifiedMs: Date.now() },
+          );
           exitCbs.forEach((cb) =>
             cb({
               designId,
@@ -247,7 +329,12 @@ export function mockBackend(): Backend {
       const list = load();
       list.forEach((d) => {
         if (d.status === "ready" && !artifacts.has(d.id))
-          artifacts.set(d.id, { file: "design.html", content: SAMPLE_HTML, modifiedMs: d.updatedAt });
+          artifacts.set(
+            d.id,
+            d.kind === "graphic"
+              ? { file: "design.html", content: SAMPLE_HTML, modifiedMs: d.updatedAt }
+              : { file: "app/page.tsx", content: "", files: SAMPLE_PROJECT("#c2410c"), modifiedMs: d.updatedAt },
+          );
       });
       return list;
     },
@@ -339,7 +426,7 @@ export function mockBackend(): Backend {
       return "refs/design.html";
     },
     async readDesignFile(id, path) {
-      return path === "export/standalone.html" ? (artifacts.get(id)?.content ?? null) : null;
+      return path === "export/standalone.html" ? (standalone.get(id) ?? null) : null;
     },
     async designDir(id) {
       return String.raw`C:\Users\you\AppData\Roaming\design-gravity\designs` + "\\" + id;

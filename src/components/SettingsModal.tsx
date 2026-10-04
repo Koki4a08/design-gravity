@@ -52,7 +52,7 @@ function General() {
             onChange={(c) => c && s.setChoice(c)}
           />
         </Row>
-        <Row label="System tasks" hint="Runs the app starts on its own: design-system questions and builds, critiques, code export.">
+        <Row label="System tasks" hint="Runs the app starts on its own: design-system questions and builds, critiques, standalone HTML exports.">
           <ModelPicker
             id="set-system-model"
             label="System tasks"

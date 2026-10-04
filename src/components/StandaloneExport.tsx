@@ -44,7 +44,7 @@ function StandaloneToast({ designId }: { designId: string }) {
       </span>
       <span className="dock-text">
         <span className="dock-title">
-          {busy ? "Building standalone HTML" : failed ? "Export didn’t finish" : done ? "Standalone HTML is ready" : "Export stopped"}
+          {busy ? "Building HTML file" : failed ? "Export didn’t finish" : done ? "HTML file is ready" : "Export stopped"}
         </span>
         <span className="dock-detail">
           <span className="dock-step">{busy ? step : failed ? job.error ?? "Try again." : done ? "One file, opens in any browser." : "Nothing was saved."}</span>
