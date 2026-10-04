@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#211f2b"/>
+      <stop offset="1" stop-color="#0f0e14"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".14"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#bg)"/>
+  <rect x="65.5" y="65.5" width="893" height="893" rx="206.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+  <!-- Isolines of a well, pulled down toward the mass they orbit. -->
+  <g fill="none" stroke-width="44">
+    <circle cx="512" cy="512" r="280" stroke="#eceaf2" stroke-opacity=".32"/>
+    <circle cx="512" cy="580" r="150" stroke="#eceaf2"/>
+  </g>
+  <circle cx="512" cy="610" r="80" fill="#ff8a5c"/>
+</svg>
