@@ -1,7 +1,37 @@
+# Dependencies & build output
 node_modules
 dist
 src-tauri/target
 src-tauri/gen
-.impeccable/review
-.impeccable/config.local.json
 *.tsbuildinfo
+
+# Local design files
+*.sdds
+
+# AI agent files (instructions, config, memory, local state)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.claude/
+.agents/
+.agent/
+.agy/
+.antigravity/
+.codex/
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.aider*
+.continue/
+.clinerules
+.github/copilot-instructions.md
+.impeccable/
+.mcp.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
