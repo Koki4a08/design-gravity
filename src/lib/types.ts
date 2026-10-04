@@ -148,6 +148,8 @@ export interface LogLine {
   tool?: string;
   verb: string;
   detail?: string;
+  /** Every file a write touched, workspace-relative where possible (codex writes several at once). */
+  files?: string[];
   state: "active" | "done" | "error";
   seconds?: number;
 }

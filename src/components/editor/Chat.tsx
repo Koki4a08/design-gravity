@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
-import { ArrowUp, ChevronRight, Crosshair, Eye, FileText, GitBranch, Paperclip, RotateCcw, X } from "lucide-react";
+import { ArrowUp, Check, ChevronRight, Crosshair, Eye, FileText, GitBranch, Paperclip, RotateCcw, X } from "lucide-react";
 import { backend } from "../../lib/backend/backend";
 import { Inline } from "../ui/Inline";
 import { Critique } from "./Critique";
-import { ProgressMeta } from "../ui/Progress";
+import { ProgressMeta, clock, useElapsed } from "../ui/Progress";
+import { runFiles, runPhase } from "../../lib/backend/log";
 import { designChoice, providerOf, useStudio } from "../../lib/state/studio";
 import { ModelPicker } from "../ui/ModelPicker";
 import { PROVIDERS } from "../../lib/providers";
@@ -26,21 +27,35 @@ interface Props {
 const latestVersion = (d: DesignMeta) =>
   d.entries.reduce((m, e) => (e.version && e.role !== "system" ? Math.max(m, e.version) : m), 0);
 
-/** A live run: one status line, the agent's words streaming in. */
+/** A live run: its plan as the agent speaks, what it is doing now, and the files as they land. */
 function LiveTurn({ design, lines, onStop }: { design: DesignMeta; lines: LogLine[]; onStop(): void }) {
   const revising = design.entries.filter((e) => e.role !== "system").length > 1;
   const from = [...design.entries].reverse().find((e) => e.role !== "system")?.at ?? design.updatedAt;
   const said = parseReply(lines.filter((l) => l.kind === "say").map((l) => l.detail).join("\n\n")).body;
+  const files = runFiles(lines);
+  const elapsed = useElapsed(from);
 
   return (
     <div className="turn turn-agent is-live" aria-live="polite">
       <span className="avatar" aria-hidden />
       <div className="turn-body">
+        {/* The agent's opening words are its plan, not the result. */}
+        {said && <p className="agent-text agent-plan"><Inline text={said} /></p>}
         <p className="live-status">
           <span className="build-spin" aria-hidden />
-          {revising ? "Making the change" : "Designing"}
+          <span className="shimmer">{runPhase(lines, revising)}</span>
+          {!revising && <span className="live-clock">{clock(elapsed)}</span>}
         </p>
-        {said && <p className="agent-text is-streaming"><Inline text={said} /></p>}
+        {files.length > 0 && (
+          <ul className="live-files" aria-label="Files">
+            {files.map((f) => (
+              <li key={f.name} className={f.done ? "is-done" : ""}>
+                {f.done ? <Check aria-hidden /> : <span className="build-spin" aria-hidden />}
+                <span className="mono">{f.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         {/* A first build shows its clock and Stop on the desk; don't repeat them here. */}
         {revising && <ProgressMeta from={from} typical="Usually about a minute" slowAfter={150} onStop={onStop} />}
       </div>

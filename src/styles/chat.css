@@ -322,6 +322,38 @@
   width: 16px;
   height: 16px;
 }
+.live-clock {
+  margin-left: auto;
+  font: var(--t-mono);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.agent-plan {
+  color: var(--ink-2);
+}
+.live-files {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.live-files li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--t-mono);
+  color: var(--ink-2);
+}
+.live-files li.is-done {
+  color: var(--ink-3);
+}
+.live-files svg,
+.live-files .build-spin {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
 .shimmer {
   background: linear-gradient(90deg, var(--ink-3) 0%, var(--ink-3) 40%, var(--ink) 50%, var(--ink-3) 60%, var(--ink-3) 100%);
   background-size: 250% 100%;

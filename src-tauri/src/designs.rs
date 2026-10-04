@@ -208,6 +208,18 @@ pub fn export_write_bytes(path: String, bytes: Vec<u8>) -> Result<(), String> {
     fs::write(&path, bytes).map_err(|e| format!("Could not write {path}: {e}"))
 }
 
+/// Create the project folders before a run. Codex's Windows sandbox lets the
+/// agent add files to the workspace but can refuse to create folders in it,
+/// so the layout has to exist up front.
+#[tauri::command]
+pub fn design_prepare_project(app: AppHandle, id: String) -> Result<(), String> {
+    let dir = design_dir(&app, &id)?;
+    for d in PROJECT_DIRS {
+        fs::create_dir_all(dir.join(d)).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 /// A text file the agent wrote in the workspace, e.g. `export/standalone.html`.
 #[tauri::command]
 pub fn design_read_file(app: AppHandle, id: String, path: String) -> Result<Option<String>, String> {

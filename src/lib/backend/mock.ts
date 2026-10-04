@@ -428,6 +428,7 @@ export function mockBackend(): Backend {
     async readDesignFile(id, path) {
       return path === "export/standalone.html" ? (standalone.get(id) ?? null) : null;
     },
+    async prepareProject() {},
     async designDir(id) {
       return String.raw`C:\Users\you\AppData\Roaming\design-gravity\designs` + "\\" + id;
     },

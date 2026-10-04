@@ -77,7 +77,8 @@ ${PROJECT_FILES}
 - \`components/\` has one file per section (e.g. Navbar, Hero, Features, Pricing, Footer), PascalCase, each a typed function component with a default export. Repeated parts (cards, rows, plans) are small typed components or mapped arrays with the real copy.
 - \`styles/globals.css\` holds all CSS: Google Fonts \`@import url(...)\` first, then the :root tokens, then class-based rules. Components use \`className\` only: no inline styles, no CSS modules, no Tailwind.
 - Import only \`react\` and files inside the project: no other packages, no next/font, no icon libraries. Icons and imagery are inline SVG in JSX or CSS.
-- The page is rendered statically: no data fetching, effects, timers or browser APIs; any state is shown at its initial value. No app/layout.tsx; the app supplies <html> and <body>, so style html and body from globals.css.`;
+- The page is rendered statically: no data fetching, effects, timers or browser APIs; any state is shown at its initial value. No app/layout.tsx; the app supplies <html> and <body>, so style html and body from globals.css.
+- Work in one pass: settle the design, then write the files. Don't re-read files you just wrote and don't run commands to check them.`;
 
 /** Every kind of design the app can make. Add new kinds here. */
 export const KINDS: KindDef[] = [

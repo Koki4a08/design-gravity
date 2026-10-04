@@ -45,6 +45,8 @@ export interface Backend {
   readDesignFile(id: string, path: string): Promise<string | null>;
   /** Absolute path of the design's workspace folder. */
   designDir(id: string): Promise<string>;
+  /** Create app/, components/ and styles/ so the agent only has to add files. */
+  prepareProject(id: string): Promise<void>;
   snapshot(id: string): Promise<number>;
   readVersion(id: string, n: number): Promise<Artifact>;
   restoreVersion(id: string, n: number): Promise<Artifact>;
@@ -167,6 +169,7 @@ function tauriBackend(): Backend {
     systemRefDesign: (id, designId) => invoke("system_ref_design", { id, designId }),
     readDesignFile: (id, path) => invoke("design_read_file", { id, path }),
     designDir: (id) => invoke("design_dir_path", { id }),
+    prepareProject: (id) => invoke("design_prepare_project", { id }),
     exportFile: async (defaultName, ext, content) => {
       const { save } = await import("@tauri-apps/plugin-dialog");
       const path = await save({

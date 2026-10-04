@@ -57,6 +57,7 @@ pub fn run() {
             designs::system_ref_design,
             designs::export_write_bytes,
             designs::design_read_file,
+            designs::design_prepare_project,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Design Gravity");

@@ -20,13 +20,18 @@ const VERBS: Record<string, string> = {
   finish: "Wrapping up",
 };
 
-const fileOf = (info: any): string | undefined => {
-  const p = info?.parameters ?? {};
-  const f = p.TargetFile ?? p.AbsolutePath ?? p.File ?? p.Path;
-  return typeof f === "string" ? f.split(/[\\/]/).pop() : undefined;
+/** A path as the designer thinks of it: "components/Hero.tsx", or just the file name. */
+const shortPath = (p: unknown): string | undefined => {
+  if (typeof p !== "string") return undefined;
+  const parts = p.split(/[\\/]/).filter(Boolean);
+  const at = parts.findIndex((x) => x === "app" || x === "components" || x === "styles" || x === "export");
+  return at >= 0 ? parts.slice(at).join("/") : parts.pop();
 };
 
-const baseName = (p: unknown) => (typeof p === "string" ? p.split(/[\\/]/).pop() : undefined);
+const fileOf = (info: any): string | undefined => {
+  const p = info?.parameters ?? {};
+  return shortPath(p.TargetFile ?? p.AbsolutePath ?? p.File ?? p.Path);
+};
 
 /** Fold one `codex exec --json` event (they carry `type`, agy's carry `event`). */
 function foldCodex(lines: LogLine[], event: any): LogLine[] {
@@ -51,11 +56,12 @@ function foldCodex(lines: LogLine[], event: any): LogLine[] {
   const state: LogLine["state"] = failed ? "error" : finished ? "done" : "active";
   switch (item.type) {
     case "file_change": {
-      const first = item.changes?.[0];
+      const changes: any[] = Array.isArray(item.changes) ? item.changes : [];
+      const files = changes.map((c) => shortPath(c?.path)).filter((f): f is string => !!f);
       return put({
         key, step, kind: "tool", tool: "write_to_file",
-        verb: first?.kind === "add" ? "Laying out the design" : "Refining details",
-        detail: baseName(first?.path), state,
+        verb: changes[0]?.kind === "add" ? "Laying out the design" : "Refining details",
+        detail: files[0], files, state,
       });
     }
     case "command_execution":
@@ -115,4 +121,31 @@ export function foldEvent(lines: LogLine[], event: any): LogLine[] {
     seconds: s.duration_seconds,
   };
   return idx >= 0 ? lines.map((l, i) => (i === idx ? next : l)) : [...lines, next];
+}
+
+const WRITES = /write|replace|edit|sed_file/i;
+const READS = /view|read|list|find|grep/i;
+
+/** Files the run has written so far, in order, with whether each write finished. */
+export function runFiles(lines: LogLine[]): { name: string; done: boolean }[] {
+  const out = new Map<string, boolean>();
+  for (const l of lines) {
+    if (l.kind !== "tool" || !WRITES.test(l.tool ?? "") || l.state === "error") continue;
+    for (const f of l.files ?? (l.detail ? [l.detail] : [])) out.set(f, l.state === "done");
+  }
+  return [...out].map(([name, done]) => ({ name, done }));
+}
+
+/** What the agent is doing right now, in a few words. */
+export function runPhase(lines: LogLine[], revising = false): string {
+  const tools = lines.filter((l) => l.kind === "tool");
+  const last = tools[tools.length - 1];
+  if (!last) return lines.some((l) => l.kind === "say") ? (revising ? "Working out the change" : "Planning the design") : "Reading the brief";
+  if (last.state === "active" && WRITES.test(last.tool ?? "")) {
+    const n = last.files?.length ?? 1;
+    return n > 1 ? `Writing ${n} files` : `Writing ${last.detail ?? "the design"}`;
+  }
+  if (last.state === "active" && READS.test(last.tool ?? "")) return last.detail ? `Reading ${last.detail}` : "Reading the design";
+  if (runFiles(lines).length) return "Finishing up";
+  return revising ? "Working out the change" : "Planning the design";
 }

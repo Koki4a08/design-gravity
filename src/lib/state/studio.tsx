@@ -2,12 +2,12 @@ import { createContext, useCallback, useContext, useEffect, useLayoutEffect, use
 import type { ReactNode } from "react";
 import { backend } from "../backend/backend";
 import { foldEvent } from "../backend/log";
-import { artifactName, firstBrief, parseReply, revision, titleFromBrief, CRITIQUE_SCHEMA, critiquePrompt, standalonePrompt, STANDALONE_FILE } from "../design/prompts";
+import { artifactName, kindOf, firstBrief, parseReply, revision, titleFromBrief, CRITIQUE_SCHEMA, critiquePrompt, standalonePrompt, STANDALONE_FILE } from "../design/prompts";
 import { parseSpec } from "../design/systems";
 import type { SystemSpec } from "../design/systems";
 import { bake } from "../design/tokens";
 import { resolveAttachments } from "../project/frame";
-import { bakeProject, isProject, zipFiles } from "../project/project";
+import { bakeProject, ENTRY, isProject, zipFiles } from "../project/project";
 import { applyTheme, DEFAULT_THEME } from "../design/themes";
 import { cliPath, PROVIDERS } from "../providers";
 import type {
@@ -493,6 +493,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
       const { provider, model } = designChoice(meta, cur);
       if (!meta.provider) patchDesign(meta.id, { provider });
       try {
+        // Graphics stay one SVG; screens and mockups need the project folders in place.
+        if (kindOf(meta.kind).file === ENTRY) await backend.prepareProject(meta.id);
         await backend.agentRun({
           designId: meta.id,
           provider,
